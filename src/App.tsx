@@ -8,9 +8,13 @@ import { AtlasApp } from './designs/atlas/AtlasApp'
 import { PulseApp } from './designs/pulse/PulseApp'
 import { DarbApp } from './designs/darb/DarbApp'
 
+/**
+ * ORBIT is the official experience: the bare URL opens it directly.
+ * The other builds stay reachable by hash for reference and development.
+ */
 type Route =
-  | 'home'
   | 'orbit'
+  | 'showcase'
   | 'scope'
   | 'fieldguide'
   | 'legacy'
@@ -20,10 +24,11 @@ type Route =
 
 function readRoute(): Route {
   const h = window.location.hash.replace(/^#\/?/, '').split('?')[0]
-  if (h === 'orbit' || h === 'scope' || h === 'fieldguide') return h
+  if (h === 'showcase') return 'showcase'
+  if (h === 'scope' || h === 'fieldguide') return h
   if (h === 'legacy') return 'legacy'
   if (h === 'atlas' || h === 'pulse' || h === 'darb') return h
-  return 'home'
+  return 'orbit'
 }
 
 export default function App() {
@@ -38,12 +43,12 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
-  if (route === 'orbit') return <OrbitApp />
+  if (route === 'showcase') return <Showcase />
   if (route === 'scope') return <ScopeApp />
   if (route === 'fieldguide') return <FieldGuideApp />
   if (route === 'legacy') return <Gallery about={false} />
   if (route === 'atlas') return <AtlasApp />
   if (route === 'pulse') return <PulseApp />
   if (route === 'darb') return <DarbApp />
-  return <Showcase />
+  return <OrbitApp />
 }

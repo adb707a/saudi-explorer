@@ -1,5 +1,6 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import {
+  ArrowUpLeft,
   ArrowDown,
   ArrowUp,
   CalendarDays,
@@ -20,8 +21,9 @@ import {
   X,
 } from 'lucide-react'
 import { useExplorer } from '../../lib/useExplorer'
-import { GlobeScene, type GlobeConfig } from '../../globe/GlobeScene'
-import { ALL_CATEGORIES, CATEGORY_META, cities, cityById, directionsUrl, displayTime, featuredCities, formatDateAr, formatNum, placesInCity, weatherLabel } from '../../lib/catalog'
+import { maplibregl, SAUDI_BOUNDS, SAUDI_PADDING } from '../../maps/engine'
+import { OrbitGlobe, type OrbitGlobePhase } from '../../globe/OrbitGlobe'
+import { ALL_CATEGORIES, CATEGORY_META, cities, cityById, directionsUrl, displayTime, featuredCities, formatDateAr, formatNum, places, placesInCity, weatherLabel } from '../../lib/catalog'
 import { defaultPlanInput, GROUP_LABEL } from '../../lib/planner'
 import type { Category, Plan, PlanInput, Place } from '../../lib/types'
 import { CategoryIcon } from '../../components/CategoryIcon'
@@ -29,42 +31,68 @@ import { PlaceArt } from '../../ui/PlaceArt'
 import { SourceNote, EventsNote } from '../../ui/Honesty'
 import { cityTheme, ENV_LABEL } from '../../ui/cityTheme'
 import { CityBackdrop } from '../../ui/CityBackdrop'
+import '../../globe/orbitGlobe.css'
 import './orbit.css'
-
-const ORBIT_GLOBE: GlobeConfig = {
-  background: 'radial-gradient(circle at 42% 40%, #16204a 0%, #0a0f26 46%, #04060f 100%)',
-  atmosphere: 0x8a7bff,
-  sun: 0xfff2e0,
-  starColor: 0xcdd6ff,
-  starCount: 1200,
-  starOpacity: 0.5,
-  ambient: 0.16,
-  autoRotate: 0.22,
-  start: [0.85, 0.48, 3.05],
-  approachMs: 5200,
-  revealMs: 2000,
-  leaveMs: 2300,
-  endDistance: 1.58,
-  cloudOpacity: 0.38,
-  exposure: 1.1,
-  tone: 'orbit',
-}
 
 export function OrbitApp() {
   const x = useExplorer({ id: 'orbit', accent: '#7c6dff', defaultDark: true, pitch: 46, bearing: -12, maxPitch: 60 })
-  const [globeRevealed, setGlobeRevealed] = useState(false)
-  const [globeSettled, setGlobeSettled] = useState(false)
+  const [globeReady, setGlobeReady] = useState(false)
+  const [globePhase, setGlobePhase] = useState<OrbitGlobePhase>('idle')
   const [globeFailed, setGlobeFailed] = useState(false)
+  const [approaching, setApproaching] = useState(false)
+  const [landing, setLanding] = useState(false)
+  const landingTimer = useRef<number | null>(null)
+  const finalView = useRef<{ center: [number, number]; zoom: number } | null>(null)
   const theme = x.city ? cityTheme(x.city.id) : null
   const uiAccent = theme ? (x.dark ? theme.accentDark : theme.accent) : x.accent
+  const canLaunch = (globeReady || globeFailed) && (x.mapReady || !!x.loadError)
+
+  useEffect(() => () => {
+    if (landingTimer.current) window.clearTimeout(landingTimer.current)
+  }, [])
 
   const start = () => {
     if (globeFailed) {
       x.finishEntry()
       return
     }
-    x.enter(false)
+    setGlobePhase('flying')
+    // Park the hidden map on the exact camera the globe lands on, so the
+    // dissolve happens between two views of the same place at the same scale.
+    const map = x.mapRef.current
+    if (map) {
+      const cam = map.cameraForBounds(SAUDI_BOUNDS, { padding: SAUDI_PADDING })
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const center = cam?.center ? maplibregl.LngLat.convert(cam.center) : null
+      if (center && typeof cam?.zoom === 'number') {
+        finalView.current = { center: [center.lng, center.lat], zoom: cam.zoom }
+        // Land a touch wider than the final frame: the globe's perspective
+        // shows the country smaller than a flat map at the same field of view.
+        const view = { center, zoom: cam.zoom - 0.22, pitch: 0, bearing: 0 }
+        if (reduced) map.jumpTo(view)
+        else map.easeTo({ ...view, duration: 2400, essential: true })
+      }
+    }
   }
+
+  const onLanding = () => {
+    if (landing) return
+    setLanding(true)
+    landingTimer.current = window.setTimeout(() => {
+      x.finishEntry(false)
+      // Let the last few degrees of the approach finish on the real map.
+      const map = x.mapRef.current
+      const target = finalView.current
+      if (map && target) {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        window.setTimeout(() => {
+          if (!x.mapRef.current) return
+          map.easeTo({ center: target.center, zoom: target.zoom, pitch: 0, bearing: 0, duration: reduced ? 0 : 700, essential: true })
+        }, 180)
+      }
+    }, 720)
+  }
+
   const skip = () => x.finishEntry()
 
   return (
@@ -82,37 +110,63 @@ export function OrbitApp() {
         )}
 
         {x.stage !== 'explore' && (
-          <div className="orbit-intro">
-            <GlobeScene
-              config={ORBIT_GLOBE}
-              phase={x.stage === 'leaving' ? 'leaving' : 'intro'}
-              onReveal={() => setGlobeRevealed(true)}
-              onSettled={() => setGlobeSettled(true)}
-              onArrived={x.finishEntry}
+          <div className={`orb-intro ${globeReady || globeFailed ? 'is-ready' : ''} ${globePhase === 'flying' ? 'is-launching' : ''} ${approaching ? 'is-approach' : ''} ${landing ? 'is-landing' : ''} ${x.dark ? '' : 'is-light-map'}`}>
+            <OrbitGlobe
+              phase={globePhase}
+              onReady={() => setGlobeReady(true)}
+              onApproach={() => setApproaching(true)}
+              onLanding={onLanding}
+              onArrived={onLanding}
               onFail={() => {
                 setGlobeFailed(true)
-                setGlobeRevealed(true)
-                setGlobeSettled(true)
+                setGlobeReady(true)
               }}
             />
-            <div className={`orbit-intro-copy ${globeRevealed ? 'is-ready' : ''}`}>
-              <span className="orbit-kicker">ORBIT / استكشاف سينمائي</span>
-              <h1>من الفضاء،<br /><em>تبدأ الرحلة.</em></h1>
-              <p>كرة أرضية حقيقية، ثم هبوط سينمائي إلى السعودية. قرّب على أي مدينة وعِش المكان.</p>
-              <div className="orbit-actions">
-                <button className="orbit-start" onClick={start} disabled={!globeSettled || x.stage === 'leaving'}>
-                  ابدأ الرحلة <span>↗</span>
-                </button>
-                <button className="orbit-skip" onClick={skip}>تخطّي</button>
+            <div className="orb-hero">
+              <div className="orb-copy">
+                <span className="orb-eyebrow">ORBIT · منصة استكشاف السعودية</span>
+                <h1>
+                  السعودية…
+                  <span className="orb-accent">أقرب مما تتخيّل.</span>
+                </h1>
+                <p className="orb-lead">
+                  من قلب المدن إلى هدوء الطبيعة، اكتشف أماكن جديدة، تعرّف على تفاصيل كل وجهة،
+                  وارسم رحلتك القادمة على خريطة واحدة.
+                </p>
+                <div className="orb-actions">
+                  <button className="orb-cta" onClick={start} disabled={!canLaunch || globePhase === 'flying'}>
+                    ابدأ الاستكشاف
+                    <ArrowUpLeft size={17} strokeWidth={2.2} />
+                  </button>
+                  <button className="orb-skip" onClick={skip}>تخطّي المشهد</button>
+                </div>
+                <div className="orb-meta">
+                  {globePhase === 'flying' ? (
+                    <span className="orb-loading"><b /> نهبط في المملكة…</span>
+                  ) : globeReady && !x.mapReady && !x.loadError ? (
+                    <span className="orb-loading"><b /> نجهّز الخريطة…</span>
+                  ) : globeReady ? (
+                    <>
+                      <span>{cities.length} مدينة</span>
+                      <i />
+                      <span>{places.length} مكانًا</span>
+                      <i />
+                      <span>خريطة واحدة</span>
+                    </>
+                  ) : (
+                    <span className="orb-loading"><b /> نجهّز الكوكب…</span>
+                  )}
+                </div>
               </div>
-              {!globeRevealed && <div className="orbit-status"><i /> نقترب من السعودية…</div>}
             </div>
-            <div className="orbit-hud" aria-hidden="true">
-              <span>LAT 24.7136</span>
-              <i />
-              <span>LNG 46.6753</span>
-              <b>ORBIT → SURFACE</b>
-            </div>
+            <a
+              className="orb-credit"
+              href="https://www.solarsystemscope.com/textures/"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Earth imagery · Solar System Scope · CC BY 4.0
+            </a>
           </div>
         )}
 

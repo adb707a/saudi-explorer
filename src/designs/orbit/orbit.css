@@ -87,26 +87,6 @@
 }
 
 /* intro */
-.orbit-intro {
-  position: absolute;
-  inset: 0;
-  z-index: 30;
-}
-.orbit-intro-copy {
-  position: absolute;
-  inset-inline-start: 8%;
-  top: 50%;
-  transform: translateY(-50%);
-  max-width: 460px;
-  opacity: 0;
-  transition: opacity 0.9s ease, transform 0.9s ease;
-  z-index: 32;
-  pointer-events: none;
-}
-.orbit-intro-copy.is-ready {
-  opacity: 1;
-  pointer-events: auto;
-}
 .orbit-kicker {
   display: inline-block;
   font-family: var(--font-data);
@@ -114,100 +94,6 @@
   letter-spacing: 0.2em;
   color: var(--accent);
   text-transform: uppercase;
-}
-.orbit-intro-copy h1 {
-  font-family: var(--font-display);
-  font-size: clamp(2.6rem, 6vw, 4.6rem);
-  line-height: 1.05;
-  margin: 14px 0 18px;
-  letter-spacing: -0.03em;
-  color: #fff;
-}
-.orbit-intro-copy h1 em {
-  font-style: normal;
-  background: linear-gradient(90deg, var(--glow), var(--accent));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.orbit-intro-copy p {
-  color: rgba(255, 255, 255, 0.78);
-  line-height: 1.8;
-  font-size: 14.5px;
-  margin: 0 0 26px;
-}
-.orbit-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.orbit-start {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  border: 0;
-  background: linear-gradient(90deg, var(--glow), var(--accent));
-  color: #fff;
-  height: 50px;
-  padding: 0 24px;
-  border-radius: 99px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 14px 40px rgba(90, 95, 224, 0.45);
-  transition: transform 0.2s ease;
-}
-.orbit-start span {
-  font-size: 18px;
-}
-.orbit-start:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-.orbit-start:not(:disabled):hover {
-  transform: translateY(-2px);
-}
-.orbit-skip {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.85);
-  height: 50px;
-  padding: 0 20px;
-  border-radius: 99px;
-  font-size: 13px;
-}
-.orbit-status {
-  margin-top: 18px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-data);
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
-}
-.orbit-status i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--glow);
-  animation: ui-pulse 1.2s infinite;
-}
-.orbit-hud {
-  position: absolute;
-  bottom: 26px;
-  inset-inline-start: 8%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-data);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.5);
-  z-index: 32;
-}
-.orbit-hud i {
-  width: 34px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.3);
 }
 
 /* top bar */
@@ -866,6 +752,21 @@
   font-size: 12px;
 }
 
+/* exploring: chrome settles in after the landing */
+.orbit.is-explore .orbit-top,
+.orbit.is-explore .orbit-title,
+.orbit.is-explore .orbit-controls,
+.orbit.is-explore .orbit-cities {
+  animation: orbit-ui-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.orbit.is-explore .orbit-title { animation-delay: 0.08s; }
+.orbit.is-explore .orbit-controls { animation-delay: 0.16s; }
+.orbit.is-explore .orbit-cities { animation-delay: 0.24s; }
+@keyframes orbit-ui-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* city markers on map */
 .geo-city {
   display: inline-flex;
@@ -900,14 +801,6 @@
 }
 
 @media (max-width: 720px) {
-  .orbit-intro-copy {
-    inset-inline-start: 6%;
-    top: 38%;
-    max-width: 88%;
-  }
-  .orbit-hud {
-    inset-inline-start: 6%;
-  }
   .orbit-sheet {
     bottom: 82px;
     inset-inline-start: 10px;

@@ -131,13 +131,13 @@ export function useExplorer(opts: ExplorerOptions) {
     setPlan(null)
   }, [home])
 
-  const finishEntry = useCallback(() => {
+  const finishEntry = useCallback((settleView = true) => {
     setStage('explore')
     window.setTimeout(() => {
       const map = mapRef.current
       if (map) {
         map.resize()
-        home(true)
+        if (settleView) home(true)
       }
     }, 260)
   }, [home])

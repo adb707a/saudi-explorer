@@ -345,14 +345,19 @@ export function addRouteLayer(map: MlMap, route: DriveRoute | null, accent: stri
 
 /* ----------------------------- camera helpers ----------------------------- */
 
+/** The camera frame the Kingdom settles into — shared by the intro and the map. */
+export const SAUDI_BOUNDS: [[number, number], [number, number]] = [
+  [34.4, 15.9],
+  [56.1, 32.3],
+]
+export const SAUDI_PADDING = { top: 70, bottom: 120, left: 40, right: 40 }
+
 export function fitSaudi(map: MlMap, animate = false) {
-  map.fitBounds(
-    [
-      [34.4, 15.9],
-      [56.1, 32.3],
-    ],
-    { padding: { top: 70, bottom: 120, left: 40, right: 40 }, duration: animate ? 1300 : 0, pitch: 0 },
-  )
+  map.fitBounds(SAUDI_BOUNDS, {
+    padding: SAUDI_PADDING,
+    duration: animate ? 1100 : 0,
+    pitch: 0,
+  })
 }
 
 export function flyToCity(map: MlMap, city: City, opts?: { pitch?: number; duration?: number }) {
