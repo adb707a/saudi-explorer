@@ -1,7 +1,25 @@
 /** Google Maps JS loader — uses the key from the environment only. */
+const GOOGLE_KEY_PATTERN = /^AIza[0-9A-Za-z_-]{35}$/
 
 export function googleMapsKey(): string | undefined {
-  return import.meta.env.VITE_GOOGLE_MAPS_KEY as string | undefined
+  const raw = (import.meta.env.VITE_GOOGLE_MAPS_KEY as string | undefined) || ''
+  const key = raw.trim()
+  return key || undefined
+}
+
+/**
+ * Returns a user-facing problem with the configured key, or null when it is
+ * usable. Never includes the key itself. A Maps JS key is public by design;
+ * it must be restricted by HTTP referrer and to the Maps JavaScript API in
+ * Google Cloud (see .env.example and README).
+ */
+export function googleMapsKeyIssue(): string | null {
+  const key = googleMapsKey()
+  if (!key) return 'لم يُضبط VITE_GOOGLE_MAPS_KEY في ملف البيئة (.env.local)'
+  if (!GOOGLE_KEY_PATTERN.test(key)) {
+    return 'المفتاح لا يطابق صيغة Google (يبدأ بـ AIza ويتكوّن من 39 حرفًا) — راجع Google Cloud ولا تستخدمه قبل تصحيحه.'
+  }
+  return null
 }
 
 export interface GoogleResult {
@@ -15,10 +33,11 @@ interface GoogleWindow extends Window {
 }
 
 export function loadGoogleMaps(): Promise<GoogleResult> {
-  const key = googleMapsKey()
-  if (!key) {
-    return Promise.resolve({ ok: false, error: 'لم يُضبط VITE_GOOGLE_MAPS_KEY في ملف البيئة (.env.local)' })
+  const issue = googleMapsKeyIssue()
+  if (issue) {
+    return Promise.resolve({ ok: false, error: issue })
   }
+  const key = googleMapsKey() as string
   if (document.querySelector('script[data-gmaps]')) {
     return Promise.resolve({ ok: true })
   }

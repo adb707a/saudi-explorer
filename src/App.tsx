@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { Showcase } from './designs/showcase/Showcase'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { OrbitApp } from './designs/orbit/OrbitApp'
 import { ScopeApp } from './designs/scope/ScopeApp'
 import { FieldGuideApp } from './designs/fieldguide/FieldGuideApp'
@@ -7,6 +6,10 @@ import { Gallery } from './designs/Gallery'
 import { AtlasApp } from './designs/atlas/AtlasApp'
 import { PulseApp } from './designs/pulse/PulseApp'
 import { DarbApp } from './designs/darb/DarbApp'
+
+// Loaded only when #showcase is opened. This also keeps the optional Google
+// Maps key out of the main ORBIT bundle when one is configured at build time.
+const Showcase = lazy(() => import('./designs/showcase/Showcase').then((m) => ({ default: m.Showcase })))
 
 /**
  * ORBIT is the official experience: the bare URL opens it directly.
@@ -43,7 +46,13 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
-  if (route === 'showcase') return <Showcase />
+  if (route === 'showcase') {
+    return (
+      <Suspense fallback={<div style={{ minHeight: '60vh', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-ui)', color: 'var(--ink-500)' }}>نجهّز النماذج…</div>}>
+        <Showcase />
+      </Suspense>
+    )
+  }
   if (route === 'scope') return <ScopeApp />
   if (route === 'fieldguide') return <FieldGuideApp />
   if (route === 'legacy') return <Gallery about={false} />

@@ -12,6 +12,15 @@ lerna-debug.log*
 .env.*
 !.env.example
 
+# Sensitive material — never commit
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+secrets.json
+*.local.json
+
 node_modules
 dist
 dist-ssr

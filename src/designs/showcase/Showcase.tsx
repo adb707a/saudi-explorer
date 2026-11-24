@@ -168,7 +168,7 @@ function GoogleStatus() {
           <div>
             <b>تعذّر التحميل</b>
             <p>{detail}</p>
-            {key && <small>المفتاح المُستخدم يبدأ بـ {key.slice(0, 4)}… (أُرسل كما هو دون تغيير).</small>}
+            {key && <small>المفتاح المُهيّأ يبدأ بـ {key.slice(0, 4)}… — القيمة الكاملة لا تُعرض أبدًا.</small>}
           </div>
         </div>
       )}
