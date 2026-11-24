@@ -1,0 +1,186 @@
+/*
+  SYSTEM — neutral scaffolding for the three new prototypes.
+  No brand colors here: each model owns its own palette via its root element.
+*/
+
+.map-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ui-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 16, 26, 0.35);
+  color: #cfd8e6;
+  font-family: var(--font-data);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  z-index: 3;
+  backdrop-filter: blur(6px);
+}
+.ui-loading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.ui-loading i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: ui-pulse 1.1s infinite ease-in-out;
+}
+@keyframes ui-pulse {
+  50% {
+    transform: scale(1.9);
+    opacity: 0.3;
+  }
+}
+
+/* Honest source line */
+.ui-source {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--muted, #8a97a8);
+}
+.ui-source svg {
+  flex: none;
+}
+.ui-source a {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.85;
+}
+.ui-source a:hover {
+  text-decoration: underline;
+}
+
+/* Honest events note */
+.ui-events {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid var(--line, rgba(130, 145, 165, 0.25));
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--panel, rgba(255, 255, 255, 0.5));
+}
+.ui-events.is-compact {
+  padding: 12px 14px;
+}
+.ui-events-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--accent-soft, rgba(90, 140, 255, 0.15));
+  color: var(--accent, #5b7cfa);
+}
+.ui-events strong {
+  font-size: 12.5px;
+  font-family: var(--font-ui);
+}
+.ui-events p {
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted, #8a97a8);
+}
+.ui-events a {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 11px;
+  text-decoration: none;
+  color: var(--accent, #5b7cfa);
+}
+
+.ui-disclosure {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-family: var(--font-data);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted, #8a97a8);
+  border: 1px solid var(--line, rgba(130, 145, 165, 0.25));
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--panel, rgba(255, 255, 255, 0.5));
+}
+.ui-disclosure p {
+  margin: 0;
+}
+.ui-disclosure svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--accent, #5b7cfa);
+}
+
+/* Abstract place art */
+.place-art {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(130, 145, 165, 0.08);
+}
+.place-art svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.place-art-note {
+  position: absolute;
+  inset-inline-start: 10px;
+  bottom: 8px;
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  color: var(--muted, #8a97a8);
+  background: var(--panel-solid, #ffffff);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+/* City theme backdrop + motif */
+.city-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.city-backdrop.is-active {
+  opacity: 1;
+}
+.city-motif {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.city-motif svg {
+  width: min(760px, 92vw);
+  height: 100%;
+  opacity: 0.5;
+}

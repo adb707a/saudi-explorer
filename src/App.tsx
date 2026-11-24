@@ -1,0 +1,49 @@
+import { useEffect, useState } from 'react'
+import { Showcase } from './designs/showcase/Showcase'
+import { OrbitApp } from './designs/orbit/OrbitApp'
+import { ScopeApp } from './designs/scope/ScopeApp'
+import { FieldGuideApp } from './designs/fieldguide/FieldGuideApp'
+import { Gallery } from './designs/Gallery'
+import { AtlasApp } from './designs/atlas/AtlasApp'
+import { PulseApp } from './designs/pulse/PulseApp'
+import { DarbApp } from './designs/darb/DarbApp'
+
+type Route =
+  | 'home'
+  | 'orbit'
+  | 'scope'
+  | 'fieldguide'
+  | 'legacy'
+  | 'atlas'
+  | 'pulse'
+  | 'darb'
+
+function readRoute(): Route {
+  const h = window.location.hash.replace(/^#\/?/, '').split('?')[0]
+  if (h === 'orbit' || h === 'scope' || h === 'fieldguide') return h
+  if (h === 'legacy') return 'legacy'
+  if (h === 'atlas' || h === 'pulse' || h === 'darb') return h
+  return 'home'
+}
+
+export default function App() {
+  const [route, setRoute] = useState<Route>(readRoute)
+
+  useEffect(() => {
+    const onHash = () => {
+      setRoute(readRoute())
+      window.scrollTo({ top: 0 })
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  if (route === 'orbit') return <OrbitApp />
+  if (route === 'scope') return <ScopeApp />
+  if (route === 'fieldguide') return <FieldGuideApp />
+  if (route === 'legacy') return <Gallery about={false} />
+  if (route === 'atlas') return <AtlasApp />
+  if (route === 'pulse') return <PulseApp />
+  if (route === 'darb') return <DarbApp />
+  return <Showcase />
+}
